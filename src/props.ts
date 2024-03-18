@@ -158,6 +158,9 @@ export type PropsMap = {
     readonly novalidate?: Prop<boolean>
     readonly rel?: Prop<string>
     readonly target?: Prop<LinkTarget>;
+  } & {
+    // workaround for typescript bug
+    readonly [K in Extract<keyof GlobalEventHandlers, `on${string}`>]?: NonNullable<GlobalEventHandlers[K]>;
   }
 
   iframe: {
