@@ -1,6 +1,6 @@
 import type { Prop } from './props';
 
-export type Children = Node | string | number | bigint | false | null | undefined | Iterable<Children>;
+export type Children = Node | string | number | bigint | false | null | undefined | Iterable<Prop<Children>>;
 
 export function appendChildren(node: ParentNode, children: Prop<Children>) {
   if (typeof children == 'function') {
