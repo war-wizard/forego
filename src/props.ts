@@ -1,6 +1,7 @@
 import type { Children } from './children';
 
-export type Prop<T> = T | ((set: (value: T) => void) => void);
+export type PropCallback<T> = (set: (value: T) => void) => void;
+export type Prop<T> = T | PropCallback<T>;
 
 export interface GlobalProps extends DataProps, MicrodataProps, ARIAProps {
   readonly accesskey?: Prop<string>;
