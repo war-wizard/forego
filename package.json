@@ -2,7 +2,7 @@
   "name": "forego",
   "description": "Tools for building web apps without unnecessary or hidden complexity",
   "version": "0.1.2",
-  "main": "./jsx-runtime.js",
+  "main": "./dist/index.js",
   "author": {
     "name": "war-wizard",
     "url": "https://github.com/war-wizard/"
