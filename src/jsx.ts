@@ -12,7 +12,7 @@ export function jsx<T extends keyof HTMLElementTagNameMap>(type: T, props: Props
 export function jsx<P, N extends Node>(type: (props: P) => N, props: P): N;
 export function jsx(type: string | ((props: unknown) => Node), props: unknown): Node {
   if (typeof type == 'string') {
-    const { is, children, data, ...otherProps } = props as PropsMap[keyof PropsMap];
+    const { is, children, ...otherProps } = props as PropsMap[keyof PropsMap];
 
     const node = document.createElement(type, is ? { is } : undefined);
 
@@ -34,12 +34,6 @@ export function jsx(type: string | ((props: unknown) => Node), props: unknown): 
 
       } else {
         node.setAttribute(name, value === true ? '' : String(value));
-      }
-    }
-
-    if (data) {
-      for (const [name, value] of Object.entries(data as object)) {
-        node.dataset[name] = value;
       }
     }
 

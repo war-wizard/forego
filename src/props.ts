@@ -2,14 +2,13 @@ import type { Children } from './children';
 
 export type Prop<T> = T | ((set: (value: T) => void) => void);
 
-export interface GlobalProps extends MicrodataProps, ARIAProps {
+export interface GlobalProps extends DataProps, MicrodataProps, ARIAProps {
   readonly accesskey?: Prop<string>;
   readonly autocapitalize?: Prop<'characters' | 'none' | 'off' | 'on' | 'sentences' | 'words'>;
   readonly autofocus?: Prop<boolean>;
   readonly children?: Prop<Children>;
   readonly class?: Prop<string>;
   readonly contenteditable?: Prop<boolean | 'true' | 'false' | 'plaintext-only'>;
-  readonly data?: { readonly [key: string]: string };
   readonly dir?: Prop<'ltr' | 'rtl' | 'auto'>;
   readonly draggable?: Prop<'true' | 'false'>;
   readonly enterkeyhint?: Prop<string>;
@@ -29,6 +28,10 @@ export interface GlobalProps extends MicrodataProps, ARIAProps {
   readonly tabindex?: Prop<`${number}` | number | bigint>;
   readonly title?: Prop<string>;
   readonly translate?: Prop<'yes' | 'no'>;
+}
+
+interface DataProps {
+  [key: `data-${string}`]: Prop<string>;
 }
 
 interface MicrodataProps {
