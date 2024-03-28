@@ -44,6 +44,13 @@ function newContext(): Context {
 
 let currentContext = IGNORE_CONTEXT;
 
+function callInContext(context: Context, callback: () => void) {
+  const oldContext = currentContext;
+  currentContext = context;
+  callback();
+  currentContext = oldContext;
+}
+
 export function reactive<T>(state: State<T>): PropCallback<T>;
 export function reactive<D extends object, T>(deps: Deps<D>, callback: (deps: D) => T): PropCallback<T>;
 export function reactive<D extends object, T>(stateOrDeps: State<T> | Deps<D>, callback?: (deps: D) => T): PropCallback<T> {
@@ -53,18 +60,18 @@ export function reactive<D extends object, T>(stateOrDeps: State<T> | Deps<D>, c
 
   } else {
     const deps = stateOrDeps as Deps<D>;
+    const parentContext = currentContext;
     return (set: (value: T) => void) => {
-      const parentContext = currentContext;
       let prevContext = IGNORE_CONTEXT;
       const update = () => {
         prevContext.terminate();
-        const context = newContext();
-        currentContext = prevContext = context;
-        set(callback(Object.fromEntries(Object.entries(deps).map(([k, v]) => [k, (v as State<unknown>).get()])) as D));
-        currentContext = parentContext;
+        const context = prevContext = newContext();
+        callInContext(context, () => {
+          set(callback(Object.fromEntries(Object.entries(deps).map(([k, v]) => [k, (v as State<unknown>).get()])) as D));
+        });
         const terminateContext = () => context.terminate();
         parentContext.addTerminator(terminateContext);
-        context.addTerminator(() => context.removeTerminator(terminateContext));
+        context.addTerminator(() => parentContext.removeTerminator(terminateContext));
       };
       Object.values(deps).forEach(dep => (dep as State<unknown>).addListener(update));
       parentContext.addTerminator(() => Object.values(deps).forEach(dep => (dep as State<unknown>).removeListener(update)));
