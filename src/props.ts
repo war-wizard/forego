@@ -32,7 +32,7 @@ export interface GlobalProps extends DataProps, MicrodataProps, ARIAProps {
 }
 
 interface DataProps {
-  [key: `data-${string}`]: Prop<string>;
+  readonly [key: `data-${string}`]: Prop<string>;
 }
 
 interface MicrodataProps {
@@ -44,7 +44,9 @@ interface MicrodataProps {
 }
 
 interface ARIAProps {
-  // TODO
+  // TODO this is just temporary
+  readonly role?: Prop<string>
+  readonly [key: `aria-${string}`]: Prop<string>;
 }
 
 export type PropsMap = {
