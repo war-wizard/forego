@@ -5,7 +5,9 @@ import { Children, appendChildren } from './children';
 export namespace JSX {
   export type Element = Node;
   export type IntrinsicElements = PropsMap;
-  export interface ElementChildrenAttribute { children: unknown; }
+  export interface ElementChildrenAttribute {
+    children: unknown;
+  }
 }
 
 export function jsx<T extends keyof HTMLElementTagNameMap>(type: T, props: PropsMap[T]): HTMLElementTagNameMap[T];

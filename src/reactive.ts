@@ -39,7 +39,7 @@ function newContext(): Context {
       for (const callback of terminators) callback();
       terminators.clear();
     },
-  }
+  };
 }
 
 let currentContext = IGNORE_CONTEXT;
