@@ -342,7 +342,7 @@ export type PropsMap = {
     readonly form?: Prop<string>
     readonly multiple?: Prop<boolean>
     readonly name?: Prop<string>
-    readonly required?: Prop<string>
+    readonly required?: Prop<boolean>;
     readonly size?: Prop<`${number}` | number | bigint>;
   }
 
