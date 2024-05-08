@@ -52,30 +52,44 @@ function callInContext(context: Context, callback: () => void) {
 }
 
 export function reactive<T>(state: State<T>): PropCallback<T>;
-export function reactive<D extends object, T>(deps: Deps<D>, callback: (deps: D) => T): PropCallback<T>;
-export function reactive<D extends object, T>(stateOrDeps: State<T> | Deps<D>, callback?: (deps: D) => T): PropCallback<T> {
-  if (!callback) {
-    const state = stateOrDeps as State<T>;
-    return reactive({ state }, ({ state }) => state);
-
+export function reactive<I, O>(state: State<I>, callback: (value: I) => O): PropCallback<O>;
+export function reactive<I extends object, O>(deps: Deps<I>, callback: (deps: I) => O): PropCallback<O>;
+export function reactive(stateOrDeps: State<unknown> | Deps<object>, callback?: (deps: unknown) => unknown): PropCallback<unknown> {
+  if (stateOrDeps instanceof State) {
+    if (!callback) {
+      return _reactive1(stateOrDeps);
+    } else {
+      return _reactive2(stateOrDeps, callback);
+    }
   } else {
-    const deps = stateOrDeps as Deps<D>;
-    const parentContext = currentContext;
-    return (set: (value: T) => void) => {
-      let prevContext = IGNORE_CONTEXT;
-      const update = () => {
-        prevContext.terminate();
-        const context = prevContext = newContext();
-        callInContext(context, () => {
-          set(callback(Object.fromEntries(Object.entries(deps).map(([k, v]) => [k, (v as State<unknown>).get()])) as D));
-        });
-        const terminateContext = () => context.terminate();
-        parentContext.addTerminator(terminateContext);
-        context.addTerminator(() => parentContext.removeTerminator(terminateContext));
-      };
-      Object.values(deps).forEach(dep => (dep as State<unknown>).addListener(update));
-      parentContext.addTerminator(() => Object.values(deps).forEach(dep => (dep as State<unknown>).removeListener(update)));
-      update();
-    };
+    return _reactive3(stateOrDeps, callback!);
   }
+}
+
+function _reactive1<T>(state: State<T>): PropCallback<T> {
+  return _reactive3({ state }, ({ state }) => state);
+}
+
+function _reactive2<I, O>(state: State<I>, callback: (value: I) => O): PropCallback<O> {
+  return _reactive3({ state }, ({ state }) => callback(state));
+}
+
+function _reactive3<I extends object, O>(deps: Deps<I>, callback: (deps: I) => O): PropCallback<O> {
+  const parentContext = currentContext;
+  return (set: (value: O) => void) => {
+    let prevContext = IGNORE_CONTEXT;
+    const update = () => {
+      prevContext.terminate();
+      const context = prevContext = newContext();
+      callInContext(context, () => {
+        set(callback(Object.fromEntries(Object.entries(deps).map(([k, v]) => [k, (v as State<unknown>).get()])) as I));
+      });
+      const terminateContext = () => context.terminate();
+      parentContext.addTerminator(terminateContext);
+      context.addTerminator(() => parentContext.removeTerminator(terminateContext));
+    };
+    Object.values(deps).forEach(dep => (dep as State<unknown>).addListener(update));
+    parentContext.addTerminator(() => Object.values(deps).forEach(dep => (dep as State<unknown>).removeListener(update)));
+    update();
+  };
 }
