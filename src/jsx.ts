@@ -1,7 +1,6 @@
 import { Prop, PropsMap } from './props';
 import { Children, appendChildren } from './children';
 
-// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace JSX {
   export type Element = Node;
   export type IntrinsicElements = PropsMap;
@@ -22,8 +21,7 @@ export function jsx(type: string | ((props: unknown) => Node), props: unknown): 
       if (value === false || value === undefined || value === null) continue;
 
       if (name.startsWith('on')) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (node as any)[name] = value;
+        (node as unknown as { [name: string]: unknown })[name] = value;
 
       } else if (typeof value == 'function') {
         (value as (set: (value: unknown) => void) => void)((value: unknown) => {

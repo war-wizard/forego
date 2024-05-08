@@ -14,6 +14,7 @@ export default tseslint.config({
     }),
   ],
   rules: {
+    '@typescript-eslint/no-namespace': 'off',
     '@stylistic/padded-blocks': 'off',
   },
 });
