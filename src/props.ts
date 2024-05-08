@@ -164,9 +164,6 @@ export type PropsMap = {
     readonly novalidate?: Prop<boolean>;
     readonly rel?: Prop<string>;
     readonly target?: Prop<LinkTarget>;
-  } & {
-    // workaround for typescript bug
-    readonly [K in Extract<keyof GlobalEventHandlers, `on${string}`>]?: NonNullable<GlobalEventHandlers[K]>;
   };
 
   iframe: {
@@ -422,8 +419,13 @@ export type PropsMap = {
   };
 };
 
+type EventHandler<Target, Handler> =
+  Handler extends (this: infer This, event: infer Event, ...rest: infer Rest) => infer Return
+    ? (this: This & Target, event: Event & { readonly currentTarget: Target }, ...rest: Rest) => Return
+    : Handler;
+
 type EventHandlers<T> = {
-  readonly [K in Extract<keyof T, `on${string}`>]?: NonNullable<T[K]>;
+  readonly [K in keyof T as K extends `on${string}` ? K : never]?: EventHandler<T, NonNullable<T[K]>>;
 };
 
 type ReferrerPolicy =
