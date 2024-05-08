@@ -7,7 +7,6 @@ export interface GlobalProps extends DataProps, MicrodataProps, ARIAProps {
   readonly accesskey?: Prop<string>;
   readonly autocapitalize?: Prop<'characters' | 'none' | 'off' | 'on' | 'sentences' | 'words'>;
   readonly autofocus?: Prop<boolean>;
-  readonly children?: Prop<Children>;
   readonly class?: Prop<string>;
   readonly contenteditable?: Prop<boolean | 'true' | 'false' | 'plaintext-only'>;
   readonly dir?: Prop<'ltr' | 'rtl' | 'auto'>;
@@ -49,8 +48,14 @@ interface ARIAProps {
   readonly [key: `aria-${string}`]: Prop<string>;
 }
 
+type VoidElements = 'area' | 'base' | 'br' | 'col' | 'embed' | 'hr' | 'img' | 'input' | 'link' | 'meta' | 'param' | 'source' | 'track' | 'wbr';
+
 export type PropsMap = {
   [K in keyof HTMLElementTagNameMap]: GlobalProps & EventHandlers<HTMLElementTagNameMap[K]>;
+} & {
+  [K in keyof HTMLElementTagNameMap as K extends VoidElements ? never : K]: {
+    readonly children?: Prop<Children>;
+  }
 } & {
 
   a: {

@@ -1,4 +1,4 @@
-import { PropsMap } from './props';
+import { Prop, PropsMap } from './props';
 import { Children, appendChildren } from './children';
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -14,7 +14,7 @@ export function jsx<T extends keyof HTMLElementTagNameMap>(type: T, props: Props
 export function jsx<P, N extends Node>(type: (props: P) => N, props: P): N;
 export function jsx(type: string | ((props: unknown) => Node), props: unknown): Node {
   if (typeof type == 'string') {
-    const { is, children, ...otherProps } = props as PropsMap[keyof PropsMap];
+    const { is, children, ...otherProps } = props as { is?: string; children?: Prop<Children>; [key: string]: unknown };
 
     const node = document.createElement(type, is ? { is } : undefined);
 
@@ -39,7 +39,7 @@ export function jsx(type: string | ((props: unknown) => Node), props: unknown): 
       }
     }
 
-    appendChildren(node, children as Children);
+    appendChildren(node, children);
 
     return node;
 
