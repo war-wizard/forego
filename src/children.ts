@@ -1,42 +1,56 @@
-import type { Prop } from './props';
+import { JSX, appendJSX } from './jsx';
+import { Prop, PropCallback } from './props';
 
-export type Children = Node | string | number | bigint | false | null | undefined | Iterable<Prop<Children>>;
+type Child = Text | Comment | Element | string | number | bigint | false | null | undefined;
+export type Children = Prop<Child | Iterable<Children>>;
 
-export function appendChildren(node: ParentNode, children: Prop<Children>) {
-  if (typeof children == 'function') {
-    const start = new Text();
-    const end = new Text();
-    node.append(start, end);
+class DynamicChildren implements Iterable<JSX.Element> {
+  readonly #start = new Text();
+  readonly #end = new Text();
+
+  constructor(children: PropCallback<Child | Iterable<Children>>) {
+    const fragment = new DocumentFragment();
+    fragment.append(this.#start, this.#end);
 
     children((children) => {
       const fragment = new DocumentFragment();
-      _appendChildren(fragment, children);
+      appendJSX(fragment, createChildren(children));
       const range = new Range();
-      range.setStartAfter(start);
-      range.setEndBefore(end);
+      range.setStartAfter(this.#start);
+      range.setEndBefore(this.#end);
       range.deleteContents();
       range.insertNode(fragment);
     });
+  }
 
-  } else {
-    _appendChildren(node, children);
+  *[Symbol.iterator]() {
+    yield this.#start;
+    let node = this.#start.nextSibling;
+    while (node && node !== this.#end) {
+      yield node as JSX.Element;
+      node = node.nextSibling;
+    }
+    yield this.#end;
   }
 }
 
-function _appendChildren(node: ParentNode, children: Children) {
-  if (children === undefined) return;
-  if (children === null) return;
-  if (children === false) return;
-
-  if (children instanceof Node) {
-    node.append(children);
-
-  } else if (typeof children == 'object') {
-    for (const child of children) {
-      appendChildren(node, child);
-    }
+export function createChildren(children: Children): JSX.Element {
+  if (typeof children == 'function') {
+    return new DynamicChildren(children);
 
   } else {
-    node.append(String(children));
+    if (children === undefined) return [];
+    if (children === null) return [];
+    if (children === false) return [];
+
+    if (children instanceof Node) {
+      return children;
+
+    } else if (typeof children == 'object') {
+      return [...children].map(createChildren);
+
+    } else {
+      return new Text(String(children));
+    }
   }
 }

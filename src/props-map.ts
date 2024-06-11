@@ -8,7 +8,7 @@ export type PropsMap = {
   [K in keyof HTMLElementTagNameMap]: GlobalProps & EventHandlers<HTMLElementTagNameMap[K]>;
 } & {
   [K in keyof HTMLElementTagNameMap as K extends VoidElements ? never : K]: {
-    readonly children?: Prop<Children>;
+    readonly children?: Children;
   }
 } & {
 

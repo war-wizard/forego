@@ -1,19 +1,29 @@
-import { Prop, PropsMap } from './props';
-import { Children, appendChildren } from './children';
+import { PropsMap } from './props-map';
+import { Children, createChildren } from './children';
 
 export namespace JSX {
-  export type Element = Node;
+  export type Element = Text | Comment | globalThis.Element | Iterable<Element>;
   export type IntrinsicElements = PropsMap;
   export interface ElementChildrenAttribute {
     children: unknown;
   }
 }
 
+export function appendJSX(node: Node, jsx: JSX.Element) {
+  if (Symbol.iterator in jsx) {
+    for (const item of jsx) {
+      appendJSX(node, item);
+    }
+  } else {
+    node.appendChild(jsx);
+  }
+}
+
 export function jsx<T extends keyof HTMLElementTagNameMap>(type: T, props: PropsMap[T]): HTMLElementTagNameMap[T];
-export function jsx<P, N extends Node>(type: (props: P) => N, props: P): N;
-export function jsx(type: string | ((props: unknown) => Node), props: unknown): Node {
+export function jsx<P, N extends JSX.Element>(type: (props: P) => N, props: P): N;
+export function jsx(type: string | ((props: unknown) => JSX.Element), props: unknown): JSX.Element {
   if (typeof type == 'string') {
-    const { is, children, ...otherProps } = props as { is?: string; children?: Prop<Children>; [key: string]: unknown };
+    const { is, children, ...otherProps } = props as { is?: string; children?: Children; [key: string]: unknown };
 
     const node = document.createElement(type, is ? { is } : undefined);
 
@@ -37,7 +47,7 @@ export function jsx(type: string | ((props: unknown) => Node), props: unknown): 
       }
     }
 
-    appendChildren(node, children);
+    appendJSX(node, createChildren(children));
 
     return node;
 
