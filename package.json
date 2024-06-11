@@ -1,7 +1,7 @@
 {
   "name": "forego",
   "description": "Tools for building web apps without unnecessary or hidden complexity",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "main": "./dist/index.js",
   "author": {
     "name": "war-wizard",
