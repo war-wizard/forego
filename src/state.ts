@@ -1,42 +1,41 @@
 import { Prop, PropCallback } from './props';
 
 export class State<T> {
-  #value?: T;
-  readonly #listeners: Set<() => void>;
+  protected _value: T;
+  protected readonly _listeners: Set<() => void>;
 
-  constructor(prop: Prop<T>) {
-    this.#listeners = new Set();
-    if (typeof prop == 'function') {
-      (prop as PropCallback<T>)(value => this.set(value));
-    } else {
-      this.set(prop);
-    }
+  constructor(value: T) {
+    this._value = value;
+    this._listeners = new Set();
   }
 
   get() {
-    return this.#value as T;
+    return this._value as T;
   }
 
-  set(newValue: T) {
-    this.#value = newValue;
-    for (const listener of this.#listeners) listener();
+  set(value: T) {
+    this._value = value;
+    for (const listener of this._listeners) listener();
   }
 
   addListener(callback: () => void) {
-    this.#listeners.add(callback);
+    this._listeners.add(callback);
   }
 
   removeListener(callback: () => void) {
-    this.#listeners.delete(callback);
+    this._listeners.delete(callback);
   }
 }
 
-export type PropOrState<T> = Prop<T> | State<T>;
+export function state<T>(prop: Prop<T>): State<T>;
+export function state<T>(): State<T | undefined>;
+export function state<T>(value?: Prop<T>) {
+  if (typeof value == 'function') {
+    const state = new State<T | undefined>(undefined);
+    (value as PropCallback<T>)(value => state.set(value));
+    return state;
 
-export function state<T>(propOrState: PropOrState<T>): State<T> {
-  if (propOrState instanceof State) {
-    return propOrState;
   } else {
-    return new State(propOrState);
+    return new State(value);
   }
 }
