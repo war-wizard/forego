@@ -7,14 +7,15 @@ export type Children = Prop<Child | Iterable<Children>>;
 class DynamicChildren implements Iterable<JSX.Element> {
   readonly #start = new Text();
   readonly #end = new Text();
+  #children: JSX.Element = [];
 
   constructor(children: PropCallback<Child | Iterable<Children>>) {
-    const fragment = new DocumentFragment();
-    fragment.append(this.#start, this.#end);
+    new DocumentFragment().append(this.#start, this.#end);
 
     children((children) => {
+      this.#children = createChildren(children);
       const fragment = new DocumentFragment();
-      appendJSX(fragment, createChildren(children));
+      appendJSX(fragment, this.#children);
       const range = new Range();
       range.setStartAfter(this.#start);
       range.setEndBefore(this.#end);
@@ -25,11 +26,7 @@ class DynamicChildren implements Iterable<JSX.Element> {
 
   *[Symbol.iterator]() {
     yield this.#start;
-    let node = this.#start.nextSibling;
-    while (node && node !== this.#end) {
-      yield node as JSX.Element;
-      node = node.nextSibling;
-    }
+    yield this.#children;
     yield this.#end;
   }
 }
