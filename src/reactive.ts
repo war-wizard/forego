@@ -1,3 +1,4 @@
+import { ArrayState, ArrayStateCallback } from './array-state';
 import { PropCallback } from './props';
 import { State } from './state';
 
@@ -76,7 +77,7 @@ function _reactive2<I, O>(state: State<I>, callback: (value: I) => O): PropCallb
 
 function _reactive3<I extends object, O>(deps: Deps<I>, callback: (deps: I) => O): PropCallback<O> {
   const parentContext = currentContext;
-  return (set: (value: O) => void) => {
+  return (set) => {
     let prevContext = IGNORE_CONTEXT;
     const update = () => {
       prevContext.terminate();
@@ -92,4 +93,43 @@ function _reactive3<I extends object, O>(deps: Deps<I>, callback: (deps: I) => O
     parentContext.addTerminator(() => Object.values(deps).forEach(dep => (dep as State<unknown>).removeListener(update)));
     update();
   };
+}
+
+export function reactiveMap<I, O>(state: ArrayState<I>, callback: (value: I) => O): PropCallback<Iterable<O>>;
+export function reactiveMap<I, O>(state: State<Iterable<I>>, callback: (value: I) => O): PropCallback<Iterable<O>>;
+export function reactiveMap<I, O>(state: State<Iterable<I>>, callback: (value: I) => O): PropCallback<Iterable<O>> {
+
+  const parentContext = currentContext;
+
+  if (state instanceof ArrayState) {
+    return (set) => {
+      const childContext: Context[] = [];
+      const output: O[] = [];
+      const update: ArrayStateCallback = (spliced) => {
+        const { start = 0, deleteCount = Infinity, insertCount = Infinity } = spliced ?? {};
+        for (const context of childContext.slice(start, start + deleteCount)) context.terminate();
+        const insertedContext: Context[] = [];
+        const insertedOutput: O[] = [];
+        for (const input of state.get().slice(start, start + insertCount)) {
+          const context = newContext();
+          insertedContext.push(context);
+          callInContext(context, () => {
+            insertedOutput.push(callback(input));
+          });
+          const terminateContext = () => context.terminate();
+          parentContext.addTerminator(terminateContext);
+          context.addTerminator(() => parentContext.removeTerminator(terminateContext));
+        }
+        childContext.splice(start, deleteCount, ...insertedContext);
+        output.splice(start, deleteCount, ...insertedOutput);
+        set(output);
+      };
+      state.addListener(update);
+      parentContext.addTerminator(() => state.removeListener(update));
+      update();
+    };
+
+  } else {
+    return reactive(state, value => Array.from(value, callback));
+  }
 }

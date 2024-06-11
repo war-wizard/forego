@@ -47,7 +47,7 @@ export function createChildren(children: Children): JSX.Element {
       return children;
 
     } else if (typeof children == 'object') {
-      return [...children].map(createChildren);
+      return Array.from(children, createChildren);
 
     } else {
       return new Text(String(children));
