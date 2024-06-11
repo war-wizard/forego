@@ -26,5 +26,10 @@
     "rimraf": "^5.0.5",
     "typescript": "^5.4.3",
     "typescript-eslint": "^7.7.0"
+  },
+  "overrides": {
+    "braces@3": {
+      ".": "^3.0.3"
+    }
   }
 }
